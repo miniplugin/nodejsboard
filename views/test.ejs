@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  </head>
+  <body>
+    <h1>Firebase Test</h1>
+    <p>Firebase console에 데이터가 추가 되었는지 확인하세요</p>
+  </body>
+</html>
+
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: ""
+  };
+  firebase.initializeApp(config);
+  
+  var postData = {
+	brdwriter: "홍길동",
+ 	brdtitle: "게시판 테스트", 
+ 	brdmemo: "게시물 내용", 
+ 	brddate: Date.now()
+  };
+
+  var newPostKey = firebase.database().ref().child('posts').push().key;
+
+  var updates = {};
+  updates['/board/' + newPostKey] = postData;
+
+  firebase.database().ref().update(updates);
+		  
+</script>
