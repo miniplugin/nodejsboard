@@ -2,7 +2,7 @@
   "name": "nodejsboard",
   "version": "0.0.0",
   "scripts": {
-    "start": "echo \"start\" && node app.js"
+    "start": "echo \"start\" && node server.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",
