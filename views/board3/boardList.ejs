@@ -20,6 +20,7 @@
 				<th>No.</th> 
 				<th>Title</th>
 				<th>Writer</th>
+				<th>Email</th>
 				<th>Date</th>
 			</tr>
 		</thead>
@@ -31,6 +32,7 @@
 				<td><%=rows.length-i%></td>
 				<td><a href='boardRead?brdno=<%=rows[i].brdno%>'><%=rows[i].brdtitle%></a></td>
 				<td><%=rows[i].brdwriter%></td>
+				<td><%=rows[i].brdEmail%></td>
 				<td><%=rows[i].brddate%></td>
 			</tr>
 		<%

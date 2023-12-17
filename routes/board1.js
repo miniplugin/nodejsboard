@@ -19,13 +19,15 @@ var firebase = require("firebase");
 firebase.initializeApp(config);
 var db = firebase.firestore();
 */
+/*
 const admin = require('firebase-admin');
 const serviceAccount = require("../serviceAccountKey.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 var db = admin.firestore();
-      
+*/
+const { firebase } = require('../firebase_config');    
 router.get('/boardList', function(req, res, next) {
     firebase.database().ref('board').orderByKey().once('value', function(snapshot) {
         var rows = [];

@@ -6,6 +6,15 @@
   </head>
   <body>
     <h1><%= title %></h1>
+    <h3>
+      <% if(logined == true) { %>
+        로그인 한 사용자 : <%= name %> / <%= email %>
+        <a href="/board/logout">로그 아웃</a>
+      <% }else{ %>
+        <a href="/board/loginForm">로그인</a>
+      <% } %>
+    </h3>
     <p>Welcome to <%= title %></p>
+    <a href="/board/boardList">게시판 바로가기</a>
   </body>
 </html>
