@@ -33,6 +33,8 @@ app.use(session({
 
 app.use(function (req, res, next) {
   //res.locals 객체는 html/view 클라이언트 사이드로 변수들을 보낼 수 있으며, 그 변수들은 오로지 거기서만 사용할 수 있다.
+  res.locals.hostname = req.hostname;//ejs에서 사용
+  res.locals.title = "노드js Express웹 서비스";//ejs에서 사용
   res.locals.logined = req.session.logined;//ejs에서 사용
   res.locals.name = req.session.name;//ejs에서 사용
   res.locals.email = req.session.email;//ejs에서 사용);

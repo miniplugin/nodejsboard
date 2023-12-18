@@ -34,19 +34,32 @@ router.get('/loginForm', function (req, res, next) {
 
 router.get('/logout', function (req, res, next) {
     req.session.destroy();
+    //res.json({ message: 'ok' });
     res.redirect('/');
 });
-
+//기술 참조 : https://developers.google.com/identity/gsi/web/guides/verify-google-id-token?hl=ko
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client();
 router.post('/loginChk', async function (req, res, next) {
     console.log('구글 로그인 정보 세션에 담그기');
-    let user = req.body;
-    console.log(user);
-    console.log('user 정보 : ', user.name);
-    console.log('user email 주소 : ', user.email);
+    let obj = JSON.parse(JSON.stringify(req.body));
+    let credential = obj.credential;
+    let csrf_token = obj.g_csrf_token;
+    const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: "54081620771-6gn2pmgpnvbptk8o568rmdrfqqg6m2s8.apps.googleusercontent.com",
+    });
+    const payload = ticket.getPayload();
+    console.log('csrf_token 정보 : ', csrf_token);
+    console.log('payload 정보 : ', payload);
+    console.log('user 정보 : ', payload['name']);
+    console.log('user email 주소 : ', payload['email']);
     req.session.logined = true;//서버에서 사용
-    req.session.name = user.name;//서버에서 사용
-    req.session.email = user.email;//서버에서 사용
-    res.json({ message: 'ok' });
+    req.session.name = payload['name'];//서버에서 사용
+    req.session.email = payload['email'];//서버에서 사용
+    backURL=req.header('Referer') || '/';
+    res.redirect(backURL);
+    //res.json({ message: 'ok' });
 });
 
 router.get('/boardList', function (req, res, next) {

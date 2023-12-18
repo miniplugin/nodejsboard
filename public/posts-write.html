@@ -1,0 +1,51 @@
+<!doctype html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>노드js 웹 서비스</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/app/bgimg.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>게시글 등록</h2>
+    <div class="col-md-12">
+        <form name="form_posts" id="form_posts" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" class="form-control" id="title" placeholder="제목을 입력하세요" required>
+            </div>
+            <div class="form-group">
+                <label for="author"> 작성자</label>
+                <input value="" type="text" class="form-control" id="author" placeholder="작성자를 입력하세요">
+            </div>
+            <div class="form-group">
+                <label for="content"> 내용</label>
+                <textarea class="form-control" id="content" placeholder="내용을 입력하세요"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="inputFile">단일 첨부 파일</label>
+                <div class="col-sm-10">
+                    <div class="custom-file" id="inputFile">
+                        <input name="file" type="file" class="custom-file-input" id="customFile">
+                        <label class="custom-file-label" for="customFile">파일을 선택해 주세요.</label>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <a href="/posts-list.html" role="button" class="btn btn-secondary">취소</a>
+        <button type="button" class="btn btn-primary" id="btn-save">등록</button>
+    </div>
+</div>
+<script>
+$("#customFile").on("change", function() {
+  var fileName = $(this).val().split("\\").pop();
+  $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+});
+</script>
+
+</body>
+</html>
