@@ -57,9 +57,9 @@ router.post('/loginChk', async function (req, res, next) {
     req.session.logined = true;//서버에서 사용
     req.session.name = payload['name'];//서버에서 사용
     req.session.email = payload['email'];//서버에서 사용
-    backURL=req.header('Referer') || '/';
-    res.redirect(backURL);
-    //res.json({ message: 'ok' });
+    //backURL=req.header('Referer') || '/';
+    //res.redirect(backURL);
+    res.json({ message: 'ok' });
 });
 
 router.get('/boardList', function (req, res, next) {
@@ -108,7 +108,7 @@ router.get('/boardForm', function (req, res, next) {
 });
 
 router.post('/boardSave', function (req, res, next) {
-    if (!req.session) {
+    if (!req.session.logined) {
         res.redirect('loginForm');
         return;
     }
@@ -128,7 +128,7 @@ router.post('/boardSave', function (req, res, next) {
 });
 
 router.get('/boardDelete', function (req, res, next) {
-    if (!req.session) {
+    if (!req.session.logined) {
         res.redirect('loginForm');
         return;
     }

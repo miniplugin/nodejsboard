@@ -16,20 +16,23 @@
 		function onSignIn() {
 			google.accounts.id.initialize({
 				client_id: "54081620771-6gn2pmgpnvbptk8o568rmdrfqqg6m2s8.apps.googleusercontent.com",
-				callback: handleCredentialResponse
+				callback: handleCredentialResponse,
+				auto_select: false,
 			});
 
 			google.accounts.id.renderButton(
 				document.getElementById("buttonDiv"),
 				{ theme: "outline", size: "large" }  // customization attributes
 			);
-
+			google.accounts.id.prompt(); //무한반복 로그인 창 실행 중지코드(아래)
+			/*
 			google.accounts.id.prompt((notification) => {
 				if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
 					document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`;
 					google.accounts.id.prompt();
 				}
 			});
+			*/
 		}
 		function handleCredentialResponse(response) {
 			//var responsePayload = parseJwt(response.credential);
@@ -40,7 +43,7 @@
 				type: 'POST',
 				data: response,
 				success: function (response) {
-					console.log('ajax 성공');
+					console.log('ajax 성공', response);
 					location.replace(document.referrer);
 				}
 			});
@@ -57,13 +60,20 @@
 				}
 			});
 		}
+		var GoogleLogin = () => { };
 		window.onload = function () {
-			//onSignIn();	
+			onSignIn();
+			let el = document.querySelector('div[aria-labelledby="button-label"]');
+			GoogleLogin = () => {
+				el.click();
+			}
+			let GoogleLoginBtn = document.querySelector('.GoogleLogin');
+			GoogleLoginBtn.addEventListener('click',GoogleLogin);
 		}
 	</script>
+
+	<a href="#" class="btn btn-info GoogleLogin" role="button" style="width: 100%;">구글로그인</a><br>
 	<!--
-	<button onclick="onSignIn();">구글로그인</button><br>
-	-->
 	<div class="google_login_btn">
 	<div id="g_id_onload" data-client_id="54081620771-6gn2pmgpnvbptk8o568rmdrfqqg6m2s8.apps.googleusercontent.com"
 		data-login_uri="//<%= hostname %>/board/loginChk" data-auto_prompt="false">
@@ -71,9 +81,10 @@
 	<div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
 		data-shape="rectangular" data-logo_alignment="left" data-width="300" data-height="50" data-longtitle="true">
 	</div>
+	-->
 	<!-- <button onclick="onSignOut();">구글 로그아웃</button>
 	<a href="/board/logout">로그아웃</a>
-	<div id="buttonDiv"></div>
-	 -->
 	</div>
-	 <%- include ("../common/footer") %>
+	 -->
+	<div id="buttonDiv" style="display: none;"></div>
+	<%- include ("../common/footer") %>
