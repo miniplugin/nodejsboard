@@ -3,7 +3,7 @@ var router = express.Router();
 var dateFormat = require('dateformat');
 
 router.get('/', function (req, res, next) {
-    res.redirect('boardList');
+    res.redirect('/board/boardList');
 });
 /* 노드js 에서 firebase사용 기술자료 : https://forest71.tistory.com/170
 // https://firebase.google.com/docs/reference/js/v8/firebase.auth.GoogleAuthProvider
@@ -35,7 +35,7 @@ router.get('/loginForm', function (req, res, next) {
 router.get('/logout', function (req, res, next) {
     req.session.destroy();
     //res.json({ message: 'ok' });
-    res.redirect('/');
+    res.redirect('/board/boardList');
 });
 //기술 참조 : https://developers.google.com/identity/gsi/web/guides/verify-google-id-token?hl=ko
 const { OAuth2Client } = require('google-auth-library');
@@ -91,7 +91,7 @@ router.get('/boardRead', function (req, res, next) {
 
 router.get('/boardForm', function (req, res, next) {
     if (!req.session.logined) {
-        res.redirect('loginForm');
+        res.redirect('/board/loginForm');
         return;
     }
     if (!req.query.brdno) { // new
@@ -109,7 +109,7 @@ router.get('/boardForm', function (req, res, next) {
 
 router.post('/boardSave', function (req, res, next) {
     if (!req.session.logined) {
-        res.redirect('loginForm');
+        res.redirect('/board/loginForm');
         return;
     }
     var postData = req.body;
@@ -124,16 +124,16 @@ router.post('/boardSave', function (req, res, next) {
         var doc = db.collection("board").doc(postData.brdno);
         doc.update(postData);
     }
-    res.redirect('boardList');
+    res.redirect('/board/boardList');
 });
 
 router.get('/boardDelete', function (req, res, next) {
     if (!req.session.logined) {
-        res.redirect('loginForm');
+        res.redirect('/board/loginForm');
         return;
     }
     db.collection('board').doc(req.query.brdno).delete()
-    res.redirect('boardList');
+    res.redirect('/board/boardList');
 });
 
 module.exports = router;

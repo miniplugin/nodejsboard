@@ -18,6 +18,8 @@
 				client_id: "54081620771-6gn2pmgpnvbptk8o568rmdrfqqg6m2s8.apps.googleusercontent.com",
 				callback: handleCredentialResponse,
 				auto_select: false,
+				//ux_mode: 'redirect',
+				//login_uri: window.location.protocol+'//'+window.location.hostname+'/board/loginChk'
 			});
 
 			google.accounts.id.renderButton(
@@ -73,10 +75,10 @@
 	</script>
 
 	<a href="#" class="btn btn-info GoogleLogin" role="button" style="width: 100%;">구글로그인</a><br>
-	<!--
+	<!-- 
 	<div class="google_login_btn">
 	<div id="g_id_onload" data-client_id="54081620771-6gn2pmgpnvbptk8o568rmdrfqqg6m2s8.apps.googleusercontent.com"
-		data-login_uri="//<%= hostname %>/board/loginChk" data-auto_prompt="false">
+		data-login_uri="https://<%= hostname %>/board/loginChk" data-auto_prompt="false">
 	</div>
 	<div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
 		data-shape="rectangular" data-logo_alignment="left" data-width="300" data-height="50" data-longtitle="true">
