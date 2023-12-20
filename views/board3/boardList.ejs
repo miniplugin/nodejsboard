@@ -1,27 +1,27 @@
 <%- include ("../common/header") %>
-	<a href="boardForm">New</a>
-
-	<table border="1" style="width:600px">
-		<colgroup>
-			<col width='8%' />
-			<col width='*%' />
-			<col width='15%' />
-			<col width='15%' />
-		</colgroup>
-		<thead>
+	<form action="./" method="GET">
+		<div class="btn-group" role="group" aria-label="Basic example">
+			<input name="keyword" type="text" placeholder="검색어를 입력해주세요">
+			<button class="btn btn-secondary">검색</button>
+		</div>
+	</form>
+	<!-- 목록 출력 영역 -->
+	<a href="boardForm" class="btn btn-info" style="width: 100%;">글쓰기</a>
+	<table class="table table-horizontal table-bordered">
+		<thead class="thead-string">
 			<tr>
-				<th>No.</th>
-				<th>Title</th>
-				<th>Writer</th>
-				<th>Email</th>
-				<th>Date</th>
+				<th>게시글번호</th>
+				<th>제목</th>
+				<th>작성자</th>
+				<th>이메일</th>
+				<th>작성일</th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="tbody">
 			<% for(var i=0; i<rows.length; i++) { %>
 				<tr>
 					<td>
-						<%=rows.length-i%>
+						<a href='boardRead?brdno=<%=rows[i].brdno%>'><%=rows.length-i%></a>
 					</td>
 					<td><a href='boardRead?brdno=<%=rows[i].brdno%>'>
 							<%=rows[i].brdtitle%>
@@ -39,4 +39,12 @@
 				<% } %>
 		</tbody>
 	</table>
+	<ul class="pagination justify-content-center">
+		<li class="page-item"><a class="page-link" href="#">Previous</a></li>
+		<li class="page-item active"><a class="page-link" href="#">1</a></li>
+		<li class="page-item"><a class="page-link" href="#">2</a></li>
+		<li class="page-item"><a class="page-link" href="#">3</a></li>
+		<li class="page-item"><a class="page-link" href="#">4</a></li>
+		<li class="page-item"><a class="page-link" href="#">Next</a></li>
+	</ul>
 	<%- include ("../common/footer") %>

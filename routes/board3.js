@@ -2,6 +2,11 @@ var express = require('express');
 var router = express.Router();
 var dateFormat = require('dateformat');
 
+// multer로 file이 한 개만 들어있는 form-data 다루기
+const multer = require('multer');
+const upload = multer({ dest: './public/data/uploads/' }) //파싱말고도 파일 저장까지 하려면 사용하기
+// https://wanjuuuuu.tistory.com/entry/Im-%EC%84%9C%EC%9A%B8%EC%82%AC%EB%9E%8C-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%ED%9A%8C%EA%B3%A0%EB%A1%9D-5%ED%8E%B8-Nodejs%EC%99%80-Express-%EA%B7%B8%EB%A6%AC%EA%B3%A0-multipartform-data
+
 router.get('/', function (req, res, next) {
     res.redirect('/board/boardList');
 });
@@ -94,20 +99,27 @@ router.get('/boardForm', function (req, res, next) {
         res.redirect('/board/loginForm');
         return;
     }
-    if (!req.query.brdno) { // new
+    res.render('board3/boardForm', { row: "" });
+});
+
+router.post('/boardForm', upload.single('uploaded_file'), function (req, res, next) {
+    if (!req.session.logined) {
+        res.redirect('/board/loginForm');
+        return;
+    }
+    if (!req.body.brdno) { // 보안 때문에 query 대신
         res.render('board3/boardForm', { row: "" });
         return;
     }
-
     // update
-    db.collection('board').doc(req.query.brdno).get()
+    db.collection('board').doc(req.body.brdno).get()
         .then((doc) => {
             var childData = doc.data();
             res.render('board3/boardForm', { row: childData });
         })
 });
 
-router.post('/boardSave', function (req, res, next) {
+router.post('/boardSave', upload.single('uploaded_file'), function (req, res, next) {
     if (!req.session.logined) {
         res.redirect('/board/loginForm');
         return;
@@ -127,12 +139,12 @@ router.post('/boardSave', function (req, res, next) {
     res.redirect('/board/boardList');
 });
 
-router.get('/boardDelete', function (req, res, next) {
+router.post('/boardDelete', function (req, res, next) {
     if (!req.session.logined) {
         res.redirect('/board/loginForm');
         return;
     }
-    db.collection('board').doc(req.query.brdno).delete()
+    db.collection('board').doc(req.body.brdno).delete()
     res.redirect('/board/boardList');
 });
 
