@@ -9,7 +9,7 @@ const MIME_TYPE_MAP = {
 };
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, './public/data/uploads/'); //파일 저장 경로
+        cb(null, './public/data/uploads/'); //파일 저장 경로 K-PaaS 플랫폼에 폴더 접근 권한 문제 발생
     },
     filename: (req, file, cb) => {
         const ext = MIME_TYPE_MAP[file.mimetype];
