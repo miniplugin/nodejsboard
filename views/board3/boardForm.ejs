@@ -1,25 +1,58 @@
 <%- include ("../common/header") %>
+<script>
+	// https://velog.io/@rkio/Javascript-%ED%8C%8C%EC%9D%BC-%EC%97%85%EB%A1%9C%EB%93%9C-%EA%B5%AC%ED%98%84
+	async function downloadFile(fileUrl) {
+		const baseurl = '/board/download';
+		const params = {  // 필요한 query params를 {} 형태에 담아준다.
+			fileUrl: fileUrl,
+		};
+		const queryString = new URLSearchParams(params).toString();  // url에 쓰기 적합한 querySting으로 return 해준다. 
+		const requrl = `${baseurl}?${queryString}`;   // 완성된 요청 url.
+		const link = document.createElement("a");
+		// a 태그 클릭시 다운로드 될 파일의 경로이다.
+		link.href = requrl;
+		// body에 a 태그를 추가한다.
+		document.body.appendChild(link);
+		// a 태그를 강제로 클릭한다.
+		link.click();
+		// a 태그를 제거한다.
+		link.remove();
+		// 생성했던 url도 제거해준다.
+		window.URL.revokeObjectURL(requrl);
+	}
+</script>
 	<h2>게시글 등록/수정</h2>
 	<div class="col-md-12">
 		<form name="form_posts" id="form_posts" action="boardSave" method="post" enctype="multipart/form-data">
 			<div class="form-group">
 				<label for="title">제목</label>
-				<input value="<%=row.brdtitle%>" type="text" class="form-control" name="brdtitle" placeholder="제목을 입력하세요"
-					required>
+				<input value="<%=row.brdtitle%>" type="text" class="form-control" name="brdtitle"
+					placeholder="제목을 입력하세요" required>
 			</div>
 			<div class="form-group">
 				<label for="author"> 작성자</label>
-				<input value="<%=name%>" type="text" class="form-control" name="author" placeholder="작성자를 입력하세요" readonly>
+				<input value="<%=name%>" type="text" class="form-control" name="author" placeholder="작성자를 입력하세요"
+					readonly>
 			</div>
 			<div class="form-group">
 				<label for="content"> 내용</label>
-				<textarea class="form-control" name="brdmemo" placeholder="내용을 입력하세요"><%=row.brdmemo%></textarea>
+				<textarea class="form-control" name="brdmemo" placeholder="내용을 입력하세요" required><%=row.brdmemo%></textarea>
 			</div>
 			<div class="form-group">
-				<label for="inputFile">단일 첨부 파일</label>
+				<label for="inputFile">단일 첨부 파일(이미지전용 업로드용량은 10메가 이하로 제한됩니다.)
+					<% if(row.brdFile) { %>
+						<%=(row.brdFile).replace( /public/g, '' )%>
+						<input type="button" onclick="downloadFile('<%=row.brdFile%>')" value="다운로드">
+						<span style="width: 50px; display: inline-block;">&nbsp;</span><input class="form-check-input" type="checkbox" value="1" name="deleteFile" id="deleteFile">
+							<label class="form-check-label" for="deleteFile">
+								첨부파일 삭제
+							</label>
+							<% } %>
+				</label>
 				<div class="col-sm-10">
 					<div class="custom-file" id="inputFile">
-						<input name="uploaded_file" type="file" class="custom-file-input" id="customFile">
+						<input name="uploaded_file" type="file" class="custom-file-input" id="customFile"
+							accept="image/jpg, image/jpeg, image/png">
 						<label class="custom-file-label" for="customFile">파일을 선택해 주세요.</label>
 					</div>
 				</div>

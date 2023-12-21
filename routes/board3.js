@@ -1,11 +1,10 @@
 var express = require('express');
 var router = express.Router();
 var dateFormat = require('dateformat');
-
-// multer로 file이 한 개만 들어있는 form-data 다루기
-const multer = require('multer');
-const upload = multer({ dest: './public/data/uploads/' }) //파싱말고도 파일 저장까지 하려면 사용하기
-// https://wanjuuuuu.tistory.com/entry/Im-%EC%84%9C%EC%9A%B8%EC%82%AC%EB%9E%8C-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%ED%9A%8C%EA%B3%A0%EB%A1%9D-5%ED%8E%B8-Nodejs%EC%99%80-Express-%EA%B7%B8%EB%A6%AC%EA%B3%A0-multipartform-data
+// 파일 업로드, 다운로드 구현(아래 2줄)
+var { fileUpload, downloadFile } = require('./fileupload');
+const fs = require('fs');
+router.get("/download", downloadFile);
 
 router.get('/', function (req, res, next) {
     res.redirect('/board/boardList');
@@ -102,7 +101,7 @@ router.get('/boardForm', function (req, res, next) {
     res.render('board3/boardForm', { row: "" });
 });
 
-router.post('/boardForm', upload.single('uploaded_file'), function (req, res, next) {
+router.post('/boardForm', function (req, res, next) {
     if (!req.session.logined) {
         res.redirect('/board/loginForm');
         return;
@@ -111,7 +110,8 @@ router.post('/boardForm', upload.single('uploaded_file'), function (req, res, ne
         res.render('board3/boardForm', { row: "" });
         return;
     }
-    // update
+
+    // update 시 입력 폼에 값 채우기
     db.collection('board').doc(req.body.brdno).get()
         .then((doc) => {
             var childData = doc.data();
@@ -119,7 +119,7 @@ router.post('/boardForm', upload.single('uploaded_file'), function (req, res, ne
         })
 });
 
-router.post('/boardSave', upload.single('uploaded_file'), function (req, res, next) {
+router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res, next) {
     if (!req.session.logined) {
         res.redirect('/board/loginForm');
         return;
@@ -131,10 +131,35 @@ router.post('/boardSave', upload.single('uploaded_file'), function (req, res, ne
         postData.brdno = doc.id;
         postData.brdwriter = req.session.name;
         postData.brdEmail = req.session.email;
+        if (req.file) {
+            let fileUrl = req.file.path.replace(/\\/g, "/");
+            postData.brdFile = fileUrl;
+        }
         doc.set(postData);
-    } else {                // update
+    } else { // update
         var doc = db.collection("board").doc(postData.brdno);
-        doc.update(postData);
+        console.log("여기1", postData.deleteFile);
+        if (req.file || postData.deleteFile == "1") {
+            db.collection('board').doc(postData.brdno).get()
+                .then((subdoc) => {
+                    var childData = subdoc.data();
+                    console.log("여기2", childData.brdFile);
+                    if (childData.brdFile) { // 기존 파일 지우고 신규 파일 등록 시
+                        fs.unlink(childData.brdFile, (err) => {
+                            console.log(err);
+                        });
+                        postData.brdFile = null;
+                    }
+                    if (req.file) { //신규파일 등록
+                        let fileUrl = req.file.path.replace(/\\/g, "/");
+                        postData.brdFile = fileUrl;
+                    }
+                    doc.update(postData);
+                })
+        } else { // 문자만 수정
+            doc.update(postData);
+            console.log("여기3");
+        }
     }
     res.redirect('/board/boardList');
 });
@@ -144,6 +169,16 @@ router.post('/boardDelete', function (req, res, next) {
         res.redirect('/board/loginForm');
         return;
     }
+    db.collection('board').doc(req.body.brdno).get()
+        .then((doc) => {
+            var childData = doc.data();
+            console.log(childData.brdFile);
+            if (childData.brdFile) {
+                fs.unlink(childData.brdFile, (err) => {
+                    console.log(err);
+                });
+            }
+        })
     db.collection('board').doc(req.body.brdno).delete()
     res.redirect('/board/boardList');
 });
