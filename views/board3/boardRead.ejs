@@ -45,7 +45,8 @@
 				<label for="author"> 첨부파일</label>
 				<% if(row.brdFile) { %>
 					<input type="button" onclick="downloadFile('<%=row.brdFile%>')" value="다운로드">
-					<div style="border:1px solid red"><img src="<%=(row.brdFile).replace(/public/g, '')%>" style="width:100%"></div>
+					<!-- (row.brdFile).replace(/public/g, '') -->
+					<div style="border:1px solid red"><img src="<%=(row.brdFile).substring((row.brdFile).indexOf('public') + 'public'.length)%>" style="width:100%"></div>
 					<% }else{ %>
 						[없음]
 						<% } %>

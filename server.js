@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-  secret: "asdfasffdas",
+  secret: "my-secrets",
   resave: false,
   saveUninitialized: true,
   store: new MemoryStore({

@@ -41,7 +41,7 @@
 			<div class="form-group">
 				<label for="inputFile">단일 첨부 파일(이미지전용 업로드용량은 10메가 이하로 제한됩니다.)
 					<% if(row.brdFile) { %>
-						<%=(row.brdFile).replace( /public/g, '' )%>
+						<%=(row.brdFile).substring((row.brdFile).indexOf('public') + 'public'.length)%>
 						<input type="button" onclick="downloadFile('<%=row.brdFile%>')" value="다운로드">
 						<span style="width: 50px; display: inline-block;">&nbsp;</span><input class="form-check-input" type="checkbox" value="1" name="deleteFile" id="deleteFile">
 							<label class="form-check-label" for="deleteFile">

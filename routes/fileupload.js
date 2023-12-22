@@ -1,6 +1,7 @@
 // multer로 form-data 다루기 시작 https://juni-official.tistory.com/195
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 //const upload = multer({ dest: './public/data/uploads/' }) //파싱말고도 파일 저장까지 하려면 사용하기
 const MIME_TYPE_MAP = {
     "image/png": "png",
@@ -9,11 +10,12 @@ const MIME_TYPE_MAP = {
 };
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, './public/data/uploads/'); //파일 저장 경로 K-PaaS 플랫폼에 폴더 접근 권한 문제 발생
+        cb(null,path.join(__dirname,'../public/data/uploads/'));//파일 저장 경로 K-PaaS 플랫폼에 폴더 접근 권한 문제 발생
+        //cb(null, '/tmp/public/data/uploads/');//tmp 폴더에 임시로 업로드 폴더 생성 K-PaaS 에서 않됨
     },
     filename: (req, file, cb) => {
         const ext = MIME_TYPE_MAP[file.mimetype];
-        cb(null, `${Date.now()}` + "." + ext); //파일 이름
+        cb(null, `${Date.now()}` + '-' + Math.round(Math.random() * 1e9) + "." + ext); //파일 이름
     }
 })
 const fileFilter = (req, file, cb) => {
@@ -47,7 +49,7 @@ const downloadFile = async (req, res, next) => {
     let isFileExist;
     try {
         // fs.existsSync()를 사용하여 파일 존재 여부를 검증한다. Boolean 타입의 값을 반환한다.
-        isFileExist = fs.existsSync(`./${fileUrl}`);
+        isFileExist = fs.existsSync(`${fileUrl}`);
     } catch (err) {
         const error = new Error(
             "파일이 존재하지 않습니다.",
@@ -57,7 +59,7 @@ const downloadFile = async (req, res, next) => {
     }
     try {
         // download()를 사용해서 파일을 프론트쪽으로 보내준다.
-        res.download(`./${fileUrl}`);
+        res.download(`${fileUrl}`);
     } catch (err) {
         const error = new Error(
             "다운로드 에러 다시 시도해 주세요.",
