@@ -132,8 +132,11 @@ router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res
         postData.brdwriter = req.session.name;
         postData.brdEmail = req.session.email;
         if (req.file) {
-            let fileUrl = req.file.path.replace(/\\/g, "/");
-            postData.brdFile = fileUrl;
+            let path = req.file.path.replace(/\\/g, "/"); //윈도우서버용 경로때문에 추가
+            postData.path = path;
+            postData.publicUrl = req.file.publicUrl;
+            //postData.fileRef = req.file.fileRef; //에러나서 제외
+            //postData.bucketRef = req.file.bucketRef; //에러나서 제외
         }
         doc.set(postData);
     } else { // update
@@ -144,15 +147,17 @@ router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res
                 .then((subdoc) => {
                     var childData = subdoc.data();
                     console.log("여기2", childData.brdFile);
-                    if (childData.brdFile) { // 기존 파일 지우고 신규 파일 등록 시
-                        fs.unlink(childData.brdFile, (err) => {
+                    if (childData.path) { // 기존 파일 지우고 신규 파일 등록 시
+                        fs.unlink(childData.path, (err) => {
                             console.log(err);
                         });
-                        postData.brdFile = null;
+                        postData.path = null;
+                        postData.publicUrl = null;
                     }
                     if (req.file) { //신규파일 등록
-                        let fileUrl = req.file.path.replace(/\\/g, "/");
-                        postData.brdFile = fileUrl;
+                        let path = req.file.path.replace(/\\/g, "/"); //윈도우서버용 경로때문에 추가
+                        postData.path = path;                    
+                        postData.publicUrl = req.file.publicUrl;
                     }
                     doc.update(postData);
                 })
@@ -161,7 +166,8 @@ router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res
             console.log("여기3");
         }
     }
-    res.redirect('/board/boardList');
+    //res.redirect('/board/boardList');
+    res.json({ message: 'ok' });
 });
 
 router.post('/boardDelete', function (req, res, next) {
@@ -172,9 +178,9 @@ router.post('/boardDelete', function (req, res, next) {
     db.collection('board').doc(req.body.brdno).get()
         .then((doc) => {
             var childData = doc.data();
-            console.log(childData.brdFile);
-            if (childData.brdFile) {
-                fs.unlink(childData.brdFile, (err) => {
+            console.log(childData.path);
+            if (childData.path) {
+                fs.unlink(childData.path, (err) => {
                     console.log(err);
                 });
             }

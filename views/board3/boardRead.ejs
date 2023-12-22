@@ -1,6 +1,7 @@
 <%- include ("../common/header") %>
 	<script>
 		// https://velog.io/@rkio/Javascript-%ED%8C%8C%EC%9D%BC-%EC%97%85%EB%A1%9C%EB%93%9C-%EA%B5%AC%ED%98%84
+		// 서버파일 다운로드 용
 		async function downloadFile(fileUrl) {
 			const baseurl = '/board/download';
 			const params = {  // 필요한 query params를 {} 형태에 담아준다.
@@ -19,6 +20,24 @@
 			link.remove();
 			// 생성했던 url도 제거해준다.
 			window.URL.revokeObjectURL(requrl);
+		}
+		// 파이어베이스 스토어파일 다운로드 사용 취소
+		async function handleFileDownload(publicUrl) {
+			//const outsideRes = await fetch(publicUrl);
+			//const blob = await outsideRes.blob();
+			//const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			// 생성한 URL과 다운로드할 파일명 설정
+			link.setAttribute('href', url);
+			link.setAttribute('download', 'download');
+			link.setAttribute('target', '_self');
+			// 링크를 문서(body)에 추가
+			document.body.appendChild(link);
+			// 링크 클릭 => 파일 다운로드
+			link.click();
+			// 다운로드 후 링크와 URL을 정리
+			link.parentNode.removeChild(link);
+			window.URL.revokeObjectURL(url)
 		}
 	</script>
 	<h2>게시글 보기</h2>
@@ -43,10 +62,10 @@
 			</div>
 			<div class="form-group">
 				<label for="author"> 첨부파일</label>
-				<% if(row.brdFile) { %>
-					<input type="button" onclick="downloadFile('<%=row.brdFile%>')" value="다운로드">
-					<!-- (row.brdFile).replace(/public/g, '') -->
-					<div style="border:1px solid red"><img src="<%=(row.brdFile).substring((row.brdFile).indexOf('public') + 'public'.length)%>" style="width:100%"></div>
+				<% if(row.path) { %>
+					<input type="button" onclick="downloadFile('<%=row.publicUrl%>')" value="다운로드">
+					<!-- (row.brdFile).replace(/public/g, '') 또는 (row.brdFile).substring((row.brdFile).indexOf('public') + 'public'.length) -->
+					<div style="border:1px solid red"><img src="<%=(row.publicUrl)%>" style="width:100%"></div>
 					<% }else{ %>
 						[없음]
 						<% } %>

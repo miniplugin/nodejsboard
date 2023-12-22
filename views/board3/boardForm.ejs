@@ -1,29 +1,104 @@
 <%- include ("../common/header") %>
-<script>
-	// https://velog.io/@rkio/Javascript-%ED%8C%8C%EC%9D%BC-%EC%97%85%EB%A1%9C%EB%93%9C-%EA%B5%AC%ED%98%84
-	async function downloadFile(fileUrl) {
-		const baseurl = '/board/download';
-		const params = {  // 필요한 query params를 {} 형태에 담아준다.
-			fileUrl: fileUrl,
-		};
-		const queryString = new URLSearchParams(params).toString();  // url에 쓰기 적합한 querySting으로 return 해준다. 
-		const requrl = `${baseurl}?${queryString}`;   // 완성된 요청 url.
-		const link = document.createElement("a");
-		// a 태그 클릭시 다운로드 될 파일의 경로이다.
-		link.href = requrl;
-		// body에 a 태그를 추가한다.
-		document.body.appendChild(link);
-		// a 태그를 강제로 클릭한다.
-		link.click();
-		// a 태그를 제거한다.
-		link.remove();
-		// 생성했던 url도 제거해준다.
-		window.URL.revokeObjectURL(requrl);
-	}
-</script>
+	<style>
+		.wrap-loading {
+			/*화면 전체를 어둡게 합니다.*/
+			position: fixed;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.2);
+			/*not in ie */
+			filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#20000000', endColorstr='#20000000');
+			/* ie */
+		}
+		.wrap-loading div {
+			/*로딩 이미지*/
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			margin-left: -21px;
+			margin-top: -21px;
+		}
+		.display-none {
+			/*감추기*/
+			display: none;
+		}
+	</style>
+	<script>
+		// https://velog.io/@rkio/Javascript-%ED%8C%8C%EC%9D%BC-%EC%97%85%EB%A1%9C%EB%93%9C-%EA%B5%AC%ED%98%84
+		async function downloadFile(fileUrl) {
+			const baseurl = '/board/download';
+			const params = {  // 필요한 query params를 {} 형태에 담아준다.
+				fileUrl: fileUrl,
+			};
+			const queryString = new URLSearchParams(params).toString();  // url에 쓰기 적합한 querySting으로 return 해준다. 
+			const requrl = `${baseurl}?${queryString}`;   // 완성된 요청 url.
+			const link = document.createElement("a");
+			// a 태그 클릭시 다운로드 될 파일의 경로이다.
+			link.href = requrl;
+			// body에 a 태그를 추가한다.
+			document.body.appendChild(link);
+			// a 태그를 강제로 클릭한다.
+			link.click();
+			// a 태그를 제거한다.
+			link.remove();
+			// 생성했던 url도 제거해준다.
+			window.URL.revokeObjectURL(requrl);
+		}
+		window.onload = function () {
+			var loadingLayer = document.querySelector(".wrap-loading");
+			var fileNameChange = document.querySelector("#fileNameChange");
+			var form_posts = document.querySelector("#form_posts");
+			fileNameChange.addEventListener('click', function () {
+				var formData = new FormData(form_posts);
+				var file = $('#customFile').get(0).files[0];
+				if (file) {
+					console.log(file.name);
+					var ext = (file.name).split(".").pop();
+					var newFileName = Date.now() + '-' + Math.round(Math.random() * 1e9) + '.' + ext;
+					formData.set('uploaded_file', file, newFileName);
+					console.log(formData.get('uploaded_file'));
+				}
+				$.ajax({
+					url: 'boardSave',
+					type: 'POST',
+					processData: false,  // 데이터 객체를 문자열로 바꿀지에 대한 값이다. true면 일반문자...
+					contentType: false,  // 해당 타입을 true로 하면 일반 text로 구분되어 진다.
+					data: formData,  //위에서 선언한 fromdata
+					beforeSend: function () {
+						loadingLayer.classList.remove('display-none');
+					},
+					success: function (response) {
+						console.log('ajax 성공', response);
+						location.replace(document.referrer);
+					},
+					complete: function () {
+						loadingLayer.classList.add('display-none');
+					}
+				});
+				/**
+				fetch('boardSave', {
+					method: 'POST',
+					cache: 'no-cache',
+					body: formData // body 부분에 폼데이터 변수를 할당
+				})
+					.then((response) => {
+						console.log('fetch 성공', response);
+						location.replace("/board/boardList");
+					})
+					.then((data) => {
+						console.log(data);
+					});
+				*/
+				//form_posts.submit();
+			});
+		}
+	</script>
 	<h2>게시글 등록/수정</h2>
 	<div class="col-md-12">
-		<form name="form_posts" id="form_posts" action="boardSave" method="post" enctype="multipart/form-data">
+		<form name="form_posts" id="form_posts" action="boardSave" method="post" enctype="multipart/form-data"
+			onsubmit="fileNameChange();">
 			<div class="form-group">
 				<label for="title">제목</label>
 				<input value="<%=row.brdtitle%>" type="text" class="form-control" name="brdtitle"
@@ -36,14 +111,16 @@
 			</div>
 			<div class="form-group">
 				<label for="content"> 내용</label>
-				<textarea class="form-control" name="brdmemo" placeholder="내용을 입력하세요" required><%=row.brdmemo%></textarea>
+				<textarea class="form-control" name="brdmemo" placeholder="내용을 입력하세요"
+					required><%=row.brdmemo%></textarea>
 			</div>
 			<div class="form-group">
 				<label for="inputFile">단일 첨부 파일(이미지전용 업로드용량은 10메가 이하로 제한됩니다.)
-					<% if(row.brdFile) { %>
-						<%=(row.brdFile).substring((row.brdFile).indexOf('public') + 'public'.length)%>
-						<input type="button" onclick="downloadFile('<%=row.brdFile%>')" value="다운로드">
-						<span style="width: 50px; display: inline-block;">&nbsp;</span><input class="form-check-input" type="checkbox" value="1" name="deleteFile" id="deleteFile">
+					<% if(row.path) { %>
+						<%=(row.path).substring((row.path).indexOf('public') + 'public' .length)%>
+							<input type="button" onclick="downloadFile('<%=row.publicUrl%>')" value="다운로드">
+							<span style="width: 50px; display: inline-block;">&nbsp;</span><input
+								class="form-check-input" type="checkbox" value="1" name="deleteFile" id="deleteFile">
 							<label class="form-check-label" for="deleteFile">
 								첨부파일 삭제
 							</label>
@@ -59,7 +136,7 @@
 			</div>
 			<input type="hidden" name="brdno" value="<%=row.brdno%>">
 			<a href="#" onclick="history.back(-1)" role="button" class="btn btn-secondary">취소</a>
-			<input type="submit" class="btn btn-success btn-save" value="등록/수정">
+			<input type="button" class="btn btn-success btn-save" value="등록/수정" id="fileNameChange">
 		</form>
 	</div>
 	<script>
@@ -68,4 +145,7 @@
 			$(this).siblings(".custom-file-label").addClass("selected").html(fileName);
 		});
 	</script>
+	<div class="wrap-loading display-none">
+		<div>저장중...</div>
+	</div>
 	<%- include ("../common/footer") %>
