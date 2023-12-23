@@ -71,7 +71,8 @@
 					},
 					success: function (response) {
 						console.log('ajax 성공', response);
-						location.replace(document.referrer);
+						//location.replace(document.referrer); 캐시에 이미지가 남아 았어서 리스트로 이동
+						location.replace('/board/boardList');
 					},
 					complete: function () {
 						loadingLayer.classList.add('display-none');
