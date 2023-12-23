@@ -97,8 +97,7 @@
 	</script>
 	<h2>게시글 등록/수정</h2>
 	<div class="col-md-12">
-		<form name="form_posts" id="form_posts" action="boardSave" method="post" enctype="multipart/form-data"
-			onsubmit="fileNameChange();">
+		<form name="form_posts" id="form_posts" action="boardSave" method="post" enctype="multipart/form-data">
 			<div class="form-group">
 				<label for="title">제목</label>
 				<input value="<%=row.brdtitle%>" type="text" class="form-control" name="brdtitle"
@@ -118,7 +117,7 @@
 				<label for="inputFile">단일 첨부 파일(이미지전용 업로드용량은 10메가 이하로 제한됩니다.)
 					<% if(row.path) { %>
 						<%=(row.path).substring((row.path).indexOf('public') + 'public' .length)%>
-							<input type="button" onclick="downloadFile('<%=row.publicUrl%>')" value="다운로드">
+							<input type="button" onclick="downloadFile('<%=row.path%>')" value="다운로드"><br>
 							<span style="width: 50px; display: inline-block;">&nbsp;</span><input
 								class="form-check-input" type="checkbox" value="1" name="deleteFile" id="deleteFile">
 							<label class="form-check-label" for="deleteFile">
@@ -136,6 +135,7 @@
 			</div>
 			<input type="hidden" name="brdno" value="<%=row.brdno%>">
 			<a href="#" onclick="history.back(-1)" role="button" class="btn btn-secondary">취소</a>
+			<a href="#" onclick="window.location.replace('/board/boardList')" role="button" class="btn btn-secondary">목록</a>
 			<input type="button" class="btn btn-success btn-save" value="등록/수정" id="fileNameChange">
 		</form>
 	</div>

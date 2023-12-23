@@ -63,7 +63,7 @@
 			<div class="form-group">
 				<label for="author"> 첨부파일</label>
 				<% if(row.path) { %>
-					<input type="button" onclick="downloadFile('<%=row.publicUrl%>')" value="다운로드">
+					<input type="button" onclick="downloadFile('<%=row.path%>')" value="다운로드">
 					<!-- (row.brdFile).replace(/public/g, '') 또는 (row.brdFile).substring((row.brdFile).indexOf('public') + 'public'.length) -->
 					<div style="border:1px solid red"><img src="<%=(row.publicUrl)%>" style="width:100%"></div>
 					<% }else{ %>
@@ -76,19 +76,42 @@
 				<a href="boardForm?brdno=<%=row.brdno%>" class="btn btn-success">수정</a>
 			-->
 			<input type="hidden" name="brdno" value="<%=row.brdno%>">
-			<button class="btn btn-success btn-delete">삭제</button>
+			<a href="#" onclick="window.location.replace('/board/boardList')" role="button"
+				class="btn btn-secondary">목록</a>
+			<input type="button" class="btn btn-success btn-delete" value="삭제"></button>
 			<button class="btn btn-success btn-update">수정</button>
 		</form>
 	</div>
 	<script>
-		var theForm = $('#form_posts')[0];
-		$('.btn-update').on('click', function () {
-			theForm.action = "boardForm";
-			theForm.submit();
-		})
-		$('.btn-delete').on('click', function () {
-			theForm.action = "boardDelete";
-			theForm.submit();
-		})
+		window.onload = function () {
+			var theForm = $('#form_posts')[0];
+			$('.btn-update').on('click', function () {
+				theForm.action = "boardForm";
+				theForm.submit();
+			})
+			var btnDelete = document.querySelector(".btn-delete");
+			btnDelete.addEventListener('click', function () {
+				var brdno = document.querySelector("[name=brdno]");
+				//theForm.action = "boardDelete";
+				//theForm.submit();
+				$.ajax({
+					url: 'boardDelete',
+					type: 'POST',
+					data: {brdno: brdno.value},  //위에서 선언한 fromdata
+					success: function (response) {
+						console.log('ajax 성공', response);
+						location.replace(document.referrer);
+					},
+					error: function (err) {
+						console.log(err.status);
+						if(err.status) {
+							alert('수정/삭제는 본인이 작성한 글만 가능합니다.');
+						}else{
+							alert(err.status + '알수 없는 오류가 밠생 했습니다.');
+						}
+					}
+				});
+			});
+		}
 	</script>
 	<%- include ("../common/footer") %>

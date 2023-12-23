@@ -9,6 +9,7 @@ router.get("/download", downloadFile);
 router.get('/', function (req, res, next) {
     res.redirect('/board/boardList');
 });
+
 /* 노드js 에서 firebase사용 기술자료 : https://forest71.tistory.com/170
 // https://firebase.google.com/docs/reference/js/v8/firebase.auth.GoogleAuthProvider
 var config = {
@@ -61,6 +62,11 @@ router.post('/loginChk', async function (req, res, next) {
     req.session.logined = true;//서버에서 사용
     req.session.name = payload['name'];//서버에서 사용
     req.session.email = payload['email'];//서버에서 사용
+    if (payload['email'] == "kimilguk@knou.ac.kr") {
+        req.session.admined = true;//서버에서 사용
+    } else {
+        req.session.admined = false;//서버에서 사용
+    }
     //backURL=req.header('Referer') || '/';
     //res.redirect(backURL);
     res.json({ message: 'ok' });
@@ -106,6 +112,7 @@ router.post('/boardForm', function (req, res, next) {
         res.redirect('/board/loginForm');
         return;
     }
+
     if (!req.body.brdno) { // 보안 때문에 query 대신
         res.render('board3/boardForm', { row: "" });
         return;
@@ -115,6 +122,11 @@ router.post('/boardForm', function (req, res, next) {
     db.collection('board').doc(req.body.brdno).get()
         .then((doc) => {
             var childData = doc.data();
+            console.log(req.session.email, "-", req.session.admined);
+            if (req.session.email != childData.brdEmail && req.session.admined != true) {
+                res.send('<script>alert("수정/삭제는 본인이 작성한 글만 가능합니다.");window.location.replace("/board/boardList");</script>');
+                return;
+            }
             res.render('board3/boardForm', { row: childData });
         })
 });
@@ -148,15 +160,27 @@ router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res
                     var childData = subdoc.data();
                     console.log("여기2", childData.brdFile);
                     if (childData.path) { // 기존 파일 지우고 신규 파일 등록 시
+                        /** localStorege 일때 사용
                         fs.unlink(childData.path, (err) => {
                             console.log(err);
                         });
+                        */
+                        firebase.storage().bucket().file(childData.path).exists()
+                            .then((result) => {
+                                console.log(result);
+                                if (result) {
+                                    firebase.storage().bucket().file(childData.path).delete();
+                                }
+                            })
+                            .catch((err) => {
+                                console.log(err)
+                            });
                         postData.path = null;
                         postData.publicUrl = null;
                     }
                     if (req.file) { //신규파일 등록
                         let path = req.file.path.replace(/\\/g, "/"); //윈도우서버용 경로때문에 추가
-                        postData.path = path;                    
+                        postData.path = path;
                         postData.publicUrl = req.file.publicUrl;
                     }
                     doc.update(postData);
@@ -171,6 +195,7 @@ router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res
 });
 
 router.post('/boardDelete', function (req, res, next) {
+    console.log('여기-', req.body.brdno);
     if (!req.session.logined) {
         res.redirect('/board/loginForm');
         return;
@@ -178,15 +203,37 @@ router.post('/boardDelete', function (req, res, next) {
     db.collection('board').doc(req.body.brdno).get()
         .then((doc) => {
             var childData = doc.data();
-            console.log(childData.path);
-            if (childData.path) {
-                fs.unlink(childData.path, (err) => {
-                    console.log(err);
+            console.log(req.session.email, "-", req.session.admined);
+            if (req.session.email != childData.brdEmail && req.session.admined != true) {
+                return res.status(400).json({
+                    message: '수정/삭제는 본인이 작성한 글만 가능합니다.',
                 });
+                //res.send('<script>alert("수정/삭제는 본인이 작성한 글만 가능합니다.");window.location.replace("/board/boardList");</script>');
+                //return;
+            } else {
+                console.log(childData.path);
+                if (childData.path) {
+                    /** localStorage 일때 사용
+                    fs.unlink(childData.path, (err) => {
+                        console.log(err);
+                    });
+                    */
+                    firebase.storage().bucket().file(childData.path).exists()
+                        .then((result) => {
+                            console.log(result);
+                            if (result) {
+                                firebase.storage().bucket().file(childData.path).delete();
+                            }
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                        });
+                }
+                db.collection('board').doc(req.body.brdno).delete()
+                res.redirect('/board/boardList');
             }
+
         })
-    db.collection('board').doc(req.body.brdno).delete()
-    res.redirect('/board/boardList');
 });
 
 module.exports = router;

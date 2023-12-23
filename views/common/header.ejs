@@ -24,7 +24,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <% if(logined==true) { %>
-                        Looged in as : <span id="user"><%= name %> / <%= email %></span>
+                        Looged in as : <span id="user"><%= name %> / <%= email %>
+                            <% if(admined==true) { %>(관리자)<% } %>
+                        </span>
                         <a href="/board/logout" class="btn btn-info" role="button">Logout</a>
                     <% }else{ %>
                             <a href="/board/loginForm" class="btn btn-warning" role="button">

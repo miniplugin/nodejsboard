@@ -9,7 +9,7 @@ const MIME_TYPE_MAP = {
     "image/jpeg": "jpeg",
     "image/jpg": "jpg",
 };
-const storage = multer.diskStorage({
+const localStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, '../public/data/uploads/'));//파일 저장 경로 K-PaaS 플랫폼에 폴더 접근 권한 문제 발생
         //cb(null, '/tmp/public/data/uploads/');//tmp 폴더에 임시로 업로드 폴더 생성 K-PaaS 에서 않됨
@@ -39,35 +39,44 @@ const fileFilter = (req, file, cb) => {
 const { firebase, fbInstance } = require('../firebase_config');
 const defaultBucket = firebase.storage().bucket();
 console.log("버킷이름", defaultBucket.name);
-const FirebaseStorage = require('multer-firebase-storage'); // https://github.com/khaosdoctor/multer-firebase-storage
+//firebase.storage().bucket().file('public/data/uploads/1703305167873-28617796218c94e64411.png').getSignedUrl({action: 'read',expires: '03-09-2491'}).then((url) => {console.log(url)});
+//firebase.storage().bucket().file('public/data/uploads/1703305167873-28617796218c94e64411.png').exists().then((result) => { console.log(result) });
+//firebase.storage().bucket().file('public/data/uploads/abc.jpg').delete().then((result) => { console.log(result) });
+/** firebase Admin 초기화 여기서 사용하지 않고, firebase_config.js 로 옮김
+const serviceAccount = require("../serviceAccountKey.json");
+const firebaseAdmin = firebase.initializeApp({
+    credential: firebase.credential.cert(serviceAccount),  
+  }, "storage");
+*/
+const firebaseStorage = require('multer-firebase-storage'); // https://github.com/khaosdoctor/multer-firebase-storage
 const firebaseStorageOption = {
     bucketName: defaultBucket.name,
     directoryPath: "public/data/uploads",
     unique: true,
     public: true,
     hooks: {
-        beforeInit (instance) {
-          //console.log(`before init:`, instance)
+        beforeInit(instance) {
+            //console.log(`before init:`, instance)
         },
-        afterInit (instance, fb) {
-          //console.log(`after init:`, instance, fb)
+        afterInit(instance, fb) {
+            //console.log(`after init:`, instance, fb)
         },
-        beforeUpload (req, file) {
-          //console.log(`before upload:`, req, file)
+        beforeUpload(req, file) {
+            //console.log(`before upload:`, req, file)
         },
-        afterUpload (req, file, fref, bref) {
-          //console.log(`after upload:`, req, file, fref, bref);
+        afterUpload(req, file, fref, bref) {
+            //console.log(`after upload:`, req, file, fref, bref);
         },
-        beforeRemove (req, file) {
-          //console.log(`before remove:`, req, file)
+        beforeRemove(req, file) {
+            //console.log(`before remove:`, req, file)
         },
-        afterRemove (req, file, fref, bref) {
-          //console.log(`after remove:`, req, file, fref, bref)
+        afterRemove(req, file, fref, bref) {
+            //console.log(`after remove:`, req, file, fref, bref)
         }
-      }
+    }
 }
 const fileUpload = multer({
-    storage: FirebaseStorage(firebaseStorageOption, fbInstance,), // storage 운영서버 저장소 대신 파이어베이스 스토리지 사용
+    storage: firebaseStorage(firebaseStorageOption, fbInstance,), // localStorage 는 운영서버 저장소, 대신 파이어베이스 스토리지 사용
     fileFilter: fileFilter,
     limits: {
         fileSize: 10 * 1024 * 1024 //크기 제한 : 10MB
@@ -78,42 +87,29 @@ const fileUpload = multer({
 var request = require('request');
 const downloadFile = async (req, res, next) => {
     console.log("여기", req.query.fileUrl);
+    /**
     let ext = (req.query.fileUrl).split(".").pop();
-    res.setHeader("content-disposition", "attachment; filename=download."+ext);
+    res.setHeader("content-disposition", "attachment; filename=download." + ext);
     request(req.query.fileUrl).pipe(res);
-    /** 파이어베이스 스토리지 함수가 작동하지 않아서 사용하지 않음(아래)
-    const fileUrl = req.query.fileUrl;
-    var storage = firebase.storage();
-    var gsReference = storage.refFromURL(fileUrl);//gs://nodejsboard-1129e.appspot.com/public/data/uploads'+fileUrl
-    gsReference.getDownloadURL().then(function (url) {
-        // This can be downloaded directly:
-        var xhr = new XMLHttpRequest();
-        xhr.responseType = 'blob';
-        xhr.onload = function (event) {
-            var blob = xhr.response;
-        };
-        xhr.open('GET', url);
-        xhr.send();
-
-    }).catch(function (error) {
-        // A full list of error codes is available at
-        // https://firebase.google.com/docs/storage/web/handle-errors
-        switch (error.code) {
-            case 'storage/object-not-found':
-                console.log('storage/object-not-found')
-                break;
-            case 'storage/unauthorized':
-                console.log('storage/unauthorized')
-                break;
-            case 'storage/canceled':
-                console.log('storage/canceled')
-                break;
-            case 'storage/unknown':
-                console.log('storage/unknown')
-                break;
-        }
-    });
     */
+    /** 파이어베이스 스토리지는 아래 getSignedUrl 로 보안이 작동되기 때문에 사용(아래) */
+    const fileUrl = req.query.fileUrl;
+    firebase.storage().bucket().file(fileUrl).exists()
+        .then((result) => {
+            console.log(result);
+            if (result) {
+                firebase.storage().bucket().file(fileUrl).getSignedUrl({ action: 'read', expires: '03-09-2491' })
+                    .then((url) => {
+                        console.log(url[0])
+                        let ext = (fileUrl).split(".").pop();
+                        res.setHeader("content-disposition", "attachment; filename=download." + ext);
+                        request(url[0]).pipe(res);
+                    });
+            }
+        })
+        .catch((err) => {
+            console.log(err)
+        });
 };
 /** 서버 파일 다운로드(아래)
 const downloadFile = async (req, res, next) => {
