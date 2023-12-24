@@ -71,17 +71,57 @@ router.post('/loginChk', async function (req, res, next) {
     //res.redirect(backURL);
     res.json({ message: 'ok' });
 });
-
+// 페이징 변수 초기화 start : 시작점 doc정보, next: 다음 목록에 대한 정보
+var pagingObj = {
+    prev: null,
+    next: null,
+    size: 3,
+}
 router.get('/boardList', function (req, res, next) {
-    db.collection('board').orderBy("brddate", "desc").get()
+    let keyword = '';
+    if (req.query.keyword != undefined) {
+        keyword = req.query.keyword;//.where('brdtitle', 'array-contains', keyword)
+    }
+
+    let query = db.collection('board').orderBy("brddate", "desc");
+    if (keyword) {
+        console.log(keyword);
+        query = query.where('brdtitle', 'array-contains', keyword);
+        //.where('brdwriter', '>=', keyword)
+    }
+    if (req.query.prev) {
+        console.log("페이징 번호1 : ", Number(req.query.prev));
+        //query = query.startAt(req.query.start); 실행이 적용되지 않아서 where 조건으로 변경
+        query = query.where('brddate', '>', Number(req.query.prev));
+    }
+    if (req.query.next) {
+        is_loading = true;
+        console.log("페이징 번호1 : ", Number(req.query.next));
+        //query = query.startAt(req.query.start); 실행이 적용되지 않아서 where 조건으로 변경
+        query = query.where('brddate', '<', Number(req.query.next));
+    }
+    query.limit(pagingObj.size + 1)
+        .get()
         .then((snapshot) => {
-            var rows = [];
+            pagingObj = {
+                size: pagingObj.size,
+                prev: snapshot.docs[0], // document들 안에서 가장 첫번째 것을 가져온다. (내림차순이라서 변수명이 반대이다.)
+                next: snapshot.docs.length === pagingObj.size + 1 ? snapshot.docs[snapshot.docs.length - 1] : null
+                // 가져오는 데이터 갯수를 4개로 지정했는데 3개 밖에 없을 수 있다, 
+                // 이때 next가 지정한 데이터 갯수(4) 가 아니라면 null을 넣어준다. 다음(next)이 없다는 뜻.
+            }
+            if (snapshot.docs.length == 0) {
+                res.send('<script>alert("페이징 자료가 없습니다. 목록으로 돌아갑니다.");window.location.replace("/board/boardList");</script>');
+            }
+            console.log("페이징 번호2 : ", snapshot.docs.length, "===", pagingObj.size + 1);
+            let rows = [];
             snapshot.forEach((doc) => {
                 var childData = doc.data();
                 childData.brddate = dateFormat(childData.brddate, "yyyy-mm-dd");
+                childData.brdtitle = (childData.brdtitle).join(" "); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
                 rows.push(childData);
             });
-            res.render('board3/boardList', { rows: rows });
+            res.render('board3/boardList', { rows: rows, pagingObj: pagingObj });
         })
         .catch((err) => {
             console.log('Error getting documents', err);
@@ -93,8 +133,8 @@ router.get('/boardRead', function (req, res, next) {
     db.collection('board').doc(req.query.brdno).get()
         .then((doc) => {
             var childData = doc.data();
-
             childData.brddate = dateFormat(childData.brddate, "yyyy-mm-dd hh:mm");
+            childData.brdtitle = (childData.brdtitle).join(" "); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
             res.render('board3/boardRead', { row: childData });
         })
 });
@@ -127,6 +167,7 @@ router.post('/boardForm', function (req, res, next) {
                 res.send('<script>alert("수정/삭제는 본인이 작성한 글만 가능합니다.");window.location.replace("/board/boardList");</script>');
                 return;
             }
+            childData.brdtitle = (childData.brdtitle).join(" "); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
             res.render('board3/boardForm', { row: childData });
         })
 });
@@ -143,6 +184,7 @@ router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res
         postData.brdno = doc.id;
         postData.brdwriter = req.session.name;
         postData.brdEmail = req.session.email;
+        postData.brdtitle = (postData.brdtitle).split(' '); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
         if (req.file) {
             let path = req.file.path.replace(/\\/g, "/"); //윈도우서버용 경로때문에 추가
             postData.path = path;
@@ -183,9 +225,11 @@ router.post('/boardSave', fileUpload.single('uploaded_file'), function (req, res
                         postData.path = path;
                         postData.publicUrl = req.file.publicUrl;
                     }
+                    postData.brdtitle = (postData.brdtitle).split(' '); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
                     doc.update(postData);
                 })
         } else { // 문자만 수정
+            postData.brdtitle = (postData.brdtitle).split(' '); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
             doc.update(postData);
             console.log("여기3");
         }

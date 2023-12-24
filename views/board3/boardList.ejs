@@ -1,5 +1,5 @@
 <%- include ("../common/header") %>
-	<form action="./" method="GET">
+	<form action="./boardList" method="GET">
 		<div class="btn-group" role="group" aria-label="Basic example">
 			<input name="keyword" type="text" placeholder="검색어를 입력해주세요">
 			<button class="btn btn-secondary">검색</button>
@@ -21,7 +21,9 @@
 			<% for(var i=0; i<rows.length; i++) { %>
 				<tr>
 					<td>
-						<a href='boardRead?brdno=<%=rows[i].brdno%>'><%=rows.length-i%></a>
+						<a href='boardRead?brdno=<%=rows[i].brdno%>'>
+							<%=rows.length-i%>
+						</a>
 					</td>
 					<td><a href='boardRead?brdno=<%=rows[i].brdno%>'>
 							<%=rows[i].brdtitle%>
@@ -40,11 +42,12 @@
 		</tbody>
 	</table>
 	<ul class="pagination justify-content-center">
-		<li class="page-item"><a class="page-link" href="#">Previous</a></li>
-		<li class="page-item active"><a class="page-link" href="#">1</a></li>
-		<li class="page-item"><a class="page-link" href="#">2</a></li>
-		<li class="page-item"><a class="page-link" href="#">3</a></li>
-		<li class="page-item"><a class="page-link" href="#">4</a></li>
-		<li class="page-item"><a class="page-link" href="#">Next</a></li>
+		<% if(pagingObj.prev) { %>
+			<li class="page-item"><a class="page-link" href="boardList?prev=<%=pagingObj.prev.data().brddate%>">Prev</a>
+			</li>
+		<% } %>
+		<% if(pagingObj.next) { %>
+			<li class="page-item"><a class="page-link"	href="boardList?next=<%=pagingObj.next.data().brddate%>">Next</a></li>
+		<% } %>
 	</ul>
 	<%- include ("../common/footer") %>
