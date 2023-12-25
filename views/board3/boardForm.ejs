@@ -52,6 +52,7 @@
 			var form_posts = document.querySelector("#form_posts");
 			fileNameChange.addEventListener('click', function () {
 				var formData = new FormData(form_posts);
+				`<% if(admined==true) { %>`
 				var file = $('#customFile').get(0).files[0];
 				if (file) {
 					console.log(file.name);
@@ -60,6 +61,7 @@
 					formData.set('uploaded_file', file, newFileName);
 					console.log(formData.get('uploaded_file'));
 				}
+				`<% } %>`
 				$.ajax({
 					url: 'boardSave',
 					type: 'POST',
@@ -127,11 +129,15 @@
 							<% } %>
 				</label>
 				<div class="col-sm-10">
+					<% if(admined==true) { %>
 					<div class="custom-file" id="inputFile">
 						<input name="uploaded_file" type="file" class="custom-file-input" id="customFile"
 							accept="image/jpg, image/jpeg, image/png">
 						<label class="custom-file-label" for="customFile">파일을 선택해 주세요.</label>
 					</div>
+					<% }else{ %>
+						현재 첨부파일을 관리자만 업로드 가능합니다.
+					<% } %>	
 				</div>
 			</div>
 			<input type="hidden" name="brdno" value="<%=row.brdno%>">

@@ -77,13 +77,38 @@ var pagingObj = {
     next: null,
     size: 3,
 }
-router.get('/boardList', function (req, res, next) {
+let mypromise = (prevDate, keyword) => {
+    return new Promise((resolve, reject) => {
+        let query = db.collection('board').orderBy("brddate", "asc");
+        if (keyword) {
+            console.log(keyword);
+            query = query.where('brdtitle', 'array-contains', keyword);
+            //.where('brdwriter', '>=', keyword)
+        }
+        if (prevDate) {
+            console.log("페이징 번호1 : ", Number(prevDate));
+            //query = query.startAt(req.query.start); 실행이 적용되지 않아서 where 조건으로 변경
+            query = query.where('brddate', '>', Number(prevDate));
+        }
+        query.limit(pagingObj.size)
+            .get()
+            .then((snapshot) => {
+                console.log('여기', snapshot.docs[pagingObj.size - 1].data().brddate);
+                resolve(snapshot.docs[pagingObj.size - 1].data().brddate);
+            })
+            .catch((err) => {
+                console.log('Error getting documents', err);
+                reject("실행에러")
+            });
+    });
+}
+router.get('/boardList', async function (req, res, next) {
     let keyword = '';
     if (req.query.keyword != undefined) {
         keyword = req.query.keyword;//.where('brdtitle', 'array-contains', keyword)
     }
 
-    let query = db.collection('board').orderBy("brddate", "desc");
+    var query = db.collection('board').orderBy("brddate", "desc");
     if (keyword) {
         console.log(keyword);
         query = query.where('brdtitle', 'array-contains', keyword);
@@ -93,27 +118,34 @@ router.get('/boardList', function (req, res, next) {
         console.log("페이징 번호1 : ", Number(req.query.prev));
         //query = query.startAt(req.query.start); 실행이 적용되지 않아서 where 조건으로 변경
         query = query.where('brddate', '>', Number(req.query.prev));
+        await mypromise(req.query.prev, keyword)
+            .then((result) => {
+                query = query.where('brddate', '<=', Number(result));
+                console.log('여기2', result);
+            })
+            .catch((error) => {
+                console.log(`Handling error as we received ${error}`);
+            });
     }
     if (req.query.next) {
-        is_loading = true;
         console.log("페이징 번호1 : ", Number(req.query.next));
         //query = query.startAt(req.query.start); 실행이 적용되지 않아서 where 조건으로 변경
         query = query.where('brddate', '<', Number(req.query.next));
     }
-    query.limit(pagingObj.size + 1)
+    query.limit(pagingObj.size)
         .get()
         .then((snapshot) => {
             pagingObj = {
                 size: pagingObj.size,
                 prev: snapshot.docs[0], // document들 안에서 가장 첫번째 것을 가져온다. (내림차순이라서 변수명이 반대이다.)
-                next: snapshot.docs.length === pagingObj.size + 1 ? snapshot.docs[snapshot.docs.length - 1] : null
+                next: snapshot.docs.length === pagingObj.size ? snapshot.docs[snapshot.docs.length - 1] : null
                 // 가져오는 데이터 갯수를 4개로 지정했는데 3개 밖에 없을 수 있다, 
                 // 이때 next가 지정한 데이터 갯수(4) 가 아니라면 null을 넣어준다. 다음(next)이 없다는 뜻.
             }
             if (snapshot.docs.length == 0) {
-                res.send('<script>alert("페이징 자료가 없습니다. 목록으로 돌아갑니다.");window.location.replace("/board/boardList");</script>');
+                res.send('<script>alert("페이징 자료가 없습니다. 목록으로 돌아갑니다.");window.history.back();</script>');
             }
-            console.log("페이징 번호2 : ", snapshot.docs.length, "===", pagingObj.size + 1);
+            console.log("페이징 번호2 : ", snapshot.docs.length, "===", pagingObj.size);
             let rows = [];
             snapshot.forEach((doc) => {
                 var childData = doc.data();
