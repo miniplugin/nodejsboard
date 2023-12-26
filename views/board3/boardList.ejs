@@ -26,7 +26,7 @@
 						</a>
 					</td>
 					<td><a href='boardRead?brdno=<%=rows[i].brdno%>'>
-							<%=rows[i].brdtitle%>
+							<%=rows[i].brdtitle%> <% if(rows[i].reply) { %> [<%=rows[i].reply%>] <% } %>
 						</a></td>
 					<td>
 						<%=rows[i].brdwriter%>
@@ -35,7 +35,7 @@
 						<%=rows[i].brdEmail%>
 					</td>
 					<td>
-						<%=rows[i].brddate%>
+						<%=rows[i].brddate_format%>
 					</td>
 				</tr>
 				<% } %>

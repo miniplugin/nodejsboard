@@ -102,6 +102,28 @@ let mypromise = (prevDate, keyword) => {
             });
     });
 }
+// promose 데이터 업데이트 시 비동기화 때문에 정렬이 깨진 후 날짜별 재정렬
+function custom_sort(b, a) { // 현재 내림차순
+    return new Date(a.brddate).getTime() - new Date(b.brddate).getTime();
+}
+//파이어베이스 잡계 함수사용 https://firebase.google.com/docs/firestore/query-data/aggregation-queries?hl=ko#node.js
+let subpromise = (childData) => {
+    return new Promise((resolve, reject) => {
+        const collectionRef = db.collection('reply');
+        const q = collectionRef.where('brdno', '==', childData.brdno);
+        q.count()
+            .get()
+            .then((sub_snapshot) => {
+                console.log('댓글개수', sub_snapshot.data().count);
+                childData.reply = sub_snapshot.data().count;
+                resolve(childData);
+            })
+            .catch((err) => {
+                console.log('Error getting documents', err);
+                reject(null)
+            });
+    });
+}
 router.get('/boardList', async function (req, res, next) {
     let keyword = '';
     if (req.query.keyword != undefined) {
@@ -123,8 +145,8 @@ router.get('/boardList', async function (req, res, next) {
                 query = query.where('brddate', '<=', Number(result));
                 console.log('여기2', result);
             })
-            .catch((error) => {
-                console.log(`Handling error as we received ${error}`);
+            .catch((err) => {
+                console.log(`Error getting documents ${err}`);
             });
     }
     if (req.query.next) {
@@ -134,7 +156,7 @@ router.get('/boardList', async function (req, res, next) {
     }
     query.limit(pagingObj.size)
         .get()
-        .then((snapshot) => {
+        .then(async (snapshot) => {
             pagingObj = {
                 size: pagingObj.size,
                 prev: snapshot.docs[0], // document들 안에서 가장 첫번째 것을 가져온다. (내림차순이라서 변수명이 반대이다.)
@@ -146,20 +168,59 @@ router.get('/boardList', async function (req, res, next) {
                 res.send('<script>alert("페이징 자료가 없습니다. 목록으로 돌아갑니다.");window.history.back();</script>');
             }
             console.log("페이징 번호2 : ", snapshot.docs.length, "===", pagingObj.size);
-            let rows = [];
-            snapshot.forEach((doc) => {
+            let rows = []; // DB출력 리스트 변수
+            //맵사용 참고 : https://gist.github.com/joserocha3/de69124865bf25b634f3f3bad3ef17c3
+            await Promise.all(snapshot.docs.map(async doc => { //snapshot.forEach(async (doc) => 대신 map 사용
+                try {
+                    var childData = doc.data();
+                    childData.brddate_format = dateFormat(childData.brddate, "yyyy-mm-dd");//날짜 재정렬 custom_sort() 함수 때문에 제외
+                    childData.brdtitle = (childData.brdtitle).join(" "); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
+                    //console.log('순서1', childData);
+                    //게시물별 댓글 갯수 구하기 시작
+                    await subpromise(childData)
+                        .then((result) => {
+                            //console.log('순서2', result);
+                            rows.push(result); //ejs에 보낼 데이터 추가
+                        })
+                        .catch((err) => {
+                            console.log(`Error getting documents ${err}`);
+                        });
+                } catch (err) {
+                    console.log('Error getting documents', err)
+                }
+            }));
+            rows.sort(custom_sort);
+            //console.log('순서3', rows);
+            res.render('board3/boardList', { rows: rows, pagingObj: pagingObj });
+            /*
+            var i = 0; //반복문 끝 확인
+            snapshot.forEach(async (doc) => { //forEach문 내에선 async ~ await 구분이 작동하지 않는다. 그래서 아래 처럼... 대신 위 처럼 map 사용
                 var childData = doc.data();
                 childData.brddate = dateFormat(childData.brddate, "yyyy-mm-dd");
                 childData.brdtitle = (childData.brdtitle).join(" "); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
-                rows.push(childData);
+                //게시물별 댓글 갯수 구하기 시작
+                await subpromise(childData.brdno)
+                    .then((result) => {
+                        console.log('순서2', result);
+                        childData.reply = result;
+                        rows.push(childData); //ejs에 보낼 데이터 추가
+                        i = i + 1;
+                        if (snapshot.docs.length == i) {
+                            //console.log('순서3', rows);
+                            res.render('board3/boardList', { rows: rows, pagingObj: pagingObj });
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(`Error getting documents ${err}`);
+                    });
+                //게시물별 댓글 갯수 구하기 끝
             });
-            res.render('board3/boardList', { rows: rows, pagingObj: pagingObj });
+            */
         })
         .catch((err) => {
             console.log('Error getting documents', err);
         });
 });
-
 
 router.get('/boardRead', function (req, res, next) {
     db.collection('board').doc(req.query.brdno).get()
