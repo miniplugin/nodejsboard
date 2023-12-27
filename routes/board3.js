@@ -224,10 +224,17 @@ router.get('/boardList', async function (req, res, next) {
 
 router.get('/boardRead', function (req, res, next) {
     db.collection('board').doc(req.query.brdno).get()
-        .then((doc) => {
+        .then(async (doc) => {
             var childData = doc.data();
-            childData.brddate = dateFormat(childData.brddate, "yyyy-mm-dd hh:mm");
-            childData.brdtitle = (childData.brdtitle).join(" "); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
+            await subpromise(childData)
+                .then((result) => {
+                    result.brddate = dateFormat(childData.brddate, "yyyy-mm-dd hh:mm");
+                    result.brdtitle = (childData.brdtitle).join(" "); //파이어베이스DB는 텍스트검색을 지원하지 않기 때문에 배열로 저장
+                    childData = result;//ejs에 보낼 데이터 추가
+                })
+                .catch((err) => {
+                    console.log(`Error getting documents ${err}`);
+                });
             res.render('board3/boardRead', { row: childData });
         })
 });
@@ -338,7 +345,7 @@ router.post('/boardDelete', function (req, res, next) {
         return;
     }
     db.collection('board').doc(req.body.brdno).get()
-        .then((doc) => {
+        .then(async (doc) => {
             var childData = doc.data();
             console.log(req.session.email, "-", req.session.admined);
             if (req.session.email != childData.brdEmail && req.session.admined != true) {
@@ -366,7 +373,18 @@ router.post('/boardDelete', function (req, res, next) {
                             console.log(err)
                         });
                 }
-                db.collection('board').doc(req.body.brdno).delete()
+                await db.collection('reply').where('brdno', '==', req.body.brdno).get()
+                    .then(async (doc_list) => {
+                        await Promise.all(doc_list.docs.map(async doc => { //snapshot.forEach(async (doc) => 대신 map 사용
+                            try {
+                                var childData = doc.data();
+                                db.collection('reply').doc(childData.replyno).delete();//댓글 삭제
+                            } catch (err) {
+                                console.log('Error getting documents', err)
+                            }
+                        }));
+                });
+                db.collection('board').doc(req.body.brdno).delete();//게시글 삭제
                 res.redirect('/board/boardList');
             }
 

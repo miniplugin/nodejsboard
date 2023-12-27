@@ -47,6 +47,7 @@ app.use('/users', usersRouter);
 //app.use('/board', require('./routes/board1'));
 //app.use('/board', require('./routes/board2'));
 app.use('/board', require('./routes/board3'));
+app.use('/reply', require('./routes/reply')); //댓글용 라우터 추가
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
