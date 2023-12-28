@@ -166,6 +166,7 @@ router.get('/boardList', async function (req, res, next) {
             }
             if (snapshot.docs.length == 0) {
                 res.send('<script>alert("페이징 자료가 없습니다. 목록으로 돌아갑니다.");window.history.back();</script>');
+                return;
             }
             console.log("페이징 번호2 : ", snapshot.docs.length, "===", pagingObj.size);
             let rows = []; // DB출력 리스트 변수

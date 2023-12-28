@@ -382,12 +382,18 @@
 		var replyList = function () {
 			var prev = $("#prev").val();//현재 지정된 댓글 페이지 값 가져오기Get
 			var next = $("#next").val();//현재 지정된 댓글 페이지 값 가져오기Get
+			console.log('prev=', prev, 'next=', next);
 			$.ajax({
 				url: `/reply/reply_list?brdno=<%=row.brdno%>&prev=` + prev + `&next=` + next,//쿼리스트링으로 보냅니다.
 				type: "get",//원래는 get인데, post로 보낼수 있음.
 				dataType: "json",
 				success: function (result) {
 					if (result.rows == "undefined" || result.rows == "" || result.rows == null) {
+						if(!result.pagingObj.next) {
+							console.log('pagingObj=', result.pagingObj);
+							$("#prev").val('');
+							$("#next").val('');
+						}
 						alert("조회된 값이 없습니다.");
 					} else {
 						printReplyList(result.rows, $("#div_reply"), $("#template"));//댓글리스트출력

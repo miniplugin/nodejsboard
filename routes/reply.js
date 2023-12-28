@@ -69,7 +69,7 @@ router.get('/reply_list', async function (req, res, next) {
             }
             console.log("페이징 번호4 : ", snapshot.docs.length, "===", pagingObj.size);
             if (snapshot.docs.length == 0) {
-                res.json({ message: 'nopaging' });
+                res.json({ pagingObj: pagingObj, message: 'nopaging' });
             } else {
                 let rows = []; // DB출력 리스트 변수
                 snapshot.forEach(async (doc) => {
