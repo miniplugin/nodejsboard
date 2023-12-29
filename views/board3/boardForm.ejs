@@ -12,6 +12,7 @@
 			filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#20000000', endColorstr='#20000000');
 			/* ie */
 		}
+
 		.wrap-loading div {
 			/*로딩 이미지*/
 			position: fixed;
@@ -20,11 +21,18 @@
 			margin-left: -21px;
 			margin-top: -21px;
 		}
+
 		.display-none {
 			/*감추기*/
 			display: none;
 		}
 	</style>
+	<!-- 무료MIT라이센스 : http://suneditor.com/sample/html/getting-started.html -->
+	<!-- suneditor 사용법 : https://github.com/JiHong88/SunEditor/blob/master/README.md -->
+	<!-- 리액트엣 적용 참조 : https://quarmal.tistory.com/13 -->
+	<link href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/suneditor@latest/src/lang/ko.js"></script>
 	<script>
 		// https://velog.io/@rkio/Javascript-%ED%8C%8C%EC%9D%BC-%EC%97%85%EB%A1%9C%EB%93%9C-%EA%B5%AC%ED%98%84
 		async function downloadFile(fileUrl) {
@@ -47,10 +55,15 @@
 			window.URL.revokeObjectURL(requrl);
 		}
 		window.onload = function () {
+			const editor = SUNEDITOR.create(document.getElementById('brdmemo'), {
+				height: 'auto',
+				lang: SUNEDITOR_LANG['ko']
+			});
 			var loadingLayer = document.querySelector(".wrap-loading");
 			var fileNameChange = document.querySelector("#fileNameChange");
 			var form_posts = document.querySelector("#form_posts");
 			fileNameChange.addEventListener('click', function () {
+				editor.save();
 				var formData = new FormData(form_posts);
 				`<% if(admined==true) { %>`
 				var file = $('#customFile').get(0).files[0];
@@ -113,7 +126,7 @@
 			</div>
 			<div class="form-group">
 				<label for="content"> 내용</label>
-				<textarea class="form-control" name="brdmemo" placeholder="내용을 입력하세요"
+				<textarea class="form-control" name="brdmemo" id="brdmemo" placeholder="내용을 입력하세요"
 					required><%=row.brdmemo%></textarea>
 			</div>
 			<div class="form-group">
@@ -130,19 +143,20 @@
 				</label>
 				<div class="col-sm-10">
 					<% if(admined==true) { %>
-					<div class="custom-file" id="inputFile">
-						<input name="uploaded_file" type="file" class="custom-file-input" id="customFile"
-							accept="image/jpg, image/jpeg, image/png">
-						<label class="custom-file-label" for="customFile">파일을 선택해 주세요.</label>
-					</div>
-					<% }else{ %>
-						현재 첨부파일을 관리자만 업로드 가능합니다.
-					<% } %>	
+						<div class="custom-file" id="inputFile">
+							<input name="uploaded_file" type="file" class="custom-file-input" id="customFile"
+								accept="image/jpg, image/jpeg, image/png">
+							<label class="custom-file-label" for="customFile">파일을 선택해 주세요.</label>
+						</div>
+						<% }else{ %>
+							현재 첨부파일을 관리자만 업로드 가능합니다.
+							<% } %>
 				</div>
 			</div>
 			<input type="hidden" name="brdno" value="<%=row.brdno%>">
 			<a href="#" onclick="history.back(-1)" role="button" class="btn btn-secondary">취소</a>
-			<a href="#" onclick="window.location.replace('/board/boardList')" role="button" class="btn btn-secondary">목록</a>
+			<a href="#" onclick="window.location.replace('/board/boardList')" role="button"
+				class="btn btn-secondary">목록</a>
 			<input type="button" class="btn btn-success btn-save" value="등록/수정" id="fileNameChange">
 		</form>
 	</div>

@@ -82,6 +82,21 @@
 			<button class="btn btn-success btn-update">수정</button>
 		</form>
 	</div>
+	<!-- 무료MIT라이센스 : http://suneditor.com/sample/html/getting-started.html -->
+	<!-- suneditor 사용법 : https://github.com/JiHong88/SunEditor/blob/master/README.md -->
+	<!-- 리액트엣 적용 참조 : https://quarmal.tistory.com/13 -->
+	<link href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/suneditor@latest/src/lang/ko.js"></script>
+	<script>
+		const editor = SUNEDITOR.create(document.getElementById('content'), {
+			height: 'auto',
+			lang: SUNEDITOR_LANG['ko'],
+			resizingBar: false
+		});
+		editor.toolbar.hide();
+		editor.disable();
+	</script>
 	<script>
 		$(document).ready(function () {
 			$(".btn-delete").on("click", function () {
@@ -389,7 +404,7 @@
 				dataType: "json",
 				success: function (result) {
 					if (result.rows == "undefined" || result.rows == "" || result.rows == null) {
-						if(!result.pagingObj.next) {
+						if (!result.pagingObj.next) {
 							console.log('pagingObj=', result.pagingObj);
 							$("#prev").val('');
 							$("#next").val('');
