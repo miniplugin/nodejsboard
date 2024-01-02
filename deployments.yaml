@@ -1,0 +1,36 @@
+apiVersion: apps/v1 # info: https://learnk8s.io/deploying-nodejs-kubernetes , https://blog.naver.com/techshare/222630235507
+kind: Deployment # one pod not Use : kubectl run nodejsboard --port=3000 --image=nodejsboard --image-pull-policy=Never, kubectl delete pod nodejsboard
+metadata: # Use : kubectl apply -f deployments.yaml ,  kubectl delete -f deployments.yaml
+  name: nodejsboard # kubectl expose deployment nodejsboard --type=NodePort, kubectl delete service nodejsboard -> kubectl get service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejsboard
+  template:
+    metadata:
+      labels:
+        app: nodejsboard
+    spec:
+      containers:
+        - name: nodejsboard
+          image: nodejsboard
+          imagePullPolicy: Never # Always : from doker hub
+          ports:
+            - name: nodejsboard
+              hostPort: 80 # Dockerfile is reverse
+              containerPort: 3000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejsboard
+spec:
+  type: LoadBalancer
+  ports:
+    - name: nodejsboard
+      port: 80
+      protocol: TCP
+  selector:
+    app: nodejsboard
