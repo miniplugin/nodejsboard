@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: nodejsboard
-          image: nodejsboard
-          imagePullPolicy: Never # Always : from doker hub
+          image: kimilguk/nodejsboard # https://sarc.io/index.php/cloud/1378-docker-hub-public-private kubectl delete secret regcred
+          imagePullPolicy: Never # Always : from doker hub / kubectl create secret docker-registry regcred --docker-username=도커허브아이디 --docker-password=암호 --docker-email=도커허브이메일
           ports:
             - name: nodejsboard
               hostPort: 80 # Dockerfile is reverse
