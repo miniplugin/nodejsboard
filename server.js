@@ -39,6 +39,7 @@ app.use(function (req, res, next) {
   res.locals.name = req.session.name;//ejs에서 사용
   res.locals.email = req.session.email;//ejs에서 사용);
   res.locals.admined = req.session.admined;//ejs에서 사용
+  res.locals.userno = req.session.userno;//ejs에서 사용
   next();
 });
 

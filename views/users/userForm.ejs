@@ -1,0 +1,24 @@
+<%- include ("../common/header") %>
+<h2>사용자 등록/수정</h2>
+<div class="col-md-12">
+	<form name="form_posts" id="form_posts" action="userSave" method="post">
+		<div class="form-group">
+			<label for="useremail">email(이메일은 한번 등록하면 변경할 수 없습니다.)</label>
+			<input value="<%=email%>" type="text" class="form-control" name="useremail" placeholder="email을 입력하세요" required>
+		</div>
+		<div class="form-group">
+			<label for="username">name</label>
+			<input value="<%=row.username%>" type="text" class="form-control" name="username" placeholder="name을 입력하세요" required>
+		</div>
+		<div class="form-group">
+			<label for="userpwd">password</label>
+			<input value="" type="password" class="form-control" name="userpwd" placeholder="password을 입력하세요">
+		</div>
+		<input type="hidden" name="userno" value="<%=row.userno%>">
+		<a href="#" onclick="history.back(-1)" role="button" class="btn btn-secondary">취소</a>
+		<% if(admined==true) { %>
+		<a href="#" onclick="window.location.replace('/users/userList')" role="button" class="btn btn-secondary">목록</a>
+		<% } %>
+		<input type="submit" class="btn btn-success btn-save" value="등록/수정">
+	</form>
+<%- include ("../common/footer") %>

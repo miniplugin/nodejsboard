@@ -25,7 +25,12 @@
                 <div class="col-md-12">
                     <% if(logined==true) { %>
                         Looged in as : <span id="user"><%= name %> / <%= email %>
-                            <% if(admined==true) { %>(관리자)<% } %>
+                            <% if(admined==true) { %>
+                                (관리자)
+                                <a href="/users/userList" class="btn btn-info" role="button">사용자관리</a>
+                            <% }else{ %>
+                                <a href="/users/userRead?userno=<%=userno%>" class="btn btn-info" role="button">마이페이지</a>
+                            <% } %>
                         </span>
                         <a href="/board/logout" class="btn btn-info" role="button">Logout</a>
                     <% }else{ %>

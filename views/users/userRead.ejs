@@ -1,0 +1,79 @@
+<%- include ("../common/header") %>
+	<h2>사용자 보기</h2>
+	<div class="col-md-12">
+		<form id="form_posts" action="" method="post">
+			<div class="form-group">
+				<label for="id">등록일시</label>
+				<input type="text" class="form-control" id="id" value="<%=row.userdate%>" readonly>
+			</div>
+			<div class="form-group">
+				<label for="name">이름</label>
+				<input type="text" class="form-control" id="name" value="<%=row.username%>" readonly>
+			</div>
+			<div class="form-group">
+				<label for="email">이메일</label>
+				<input type="text" class="form-control" id="email" value="<%=row.useremail%>" readonly>
+			</div>
+			<a href="#" onclick="history.back(-1)" role="button" class="btn btn-secondary">취소</a>
+			<input type="hidden" name="userno" id="userno" value="<%=row.userno%>">
+			<% if(admined==true) { %>
+			<a href="#" onclick="window.location.replace('/users/userList')" role="button"	class="btn btn-secondary">목록</a>
+			<% } %>
+			<input type="button" class="btn btn-success btn-delete" value="삭제"></button>
+			<button class="btn btn-success btn-update">수정</button>
+		</form>
+	</div>
+	<script>
+		$(document).ready(function () {
+			$(".btn-delete").on("click", function () {
+				//alert(`<%=email%>`);
+				//alert(`<%=row.useremail%>`);
+				`<% if(logined!=true) { %>`
+				//버튼클릭시 비로그인시 로그인 화면으로 유도
+				alert("회원만 삭제가 가능합니다.");
+				location.href = "/board/loginForm";//자바스크립트 내장기능(href:hyterTextReference:URL이동)
+				return false;
+				`<% } %>`
+				if (`<%=email%>` != `<%=row.useremail%>` && `<%=admined%>` != 'true') {
+					alert('본인만 수정/삭제가 가능합니다..');
+					return false;
+				}
+				if (confirm("정말로 삭제 하시겠습니까?")) {
+					var userno = document.querySelector("#userno");
+					$.ajax({
+						url: 'userDelete',
+						type: 'POST',
+						data: { userno: userno.value },  //위에서 선언한 fromdata
+						success: function (response) {
+							console.log('ajax 성공', response);
+							alert("사용자 삭제 되었습니다.");
+							`<% if(admined!=true) { %>`
+							window.location.replace("/board/logout");
+							`<% }else{ %>`
+							location.replace('/users/userList');
+							`<% } %>`
+						},
+						error: function (err) {
+							console.log(err.status);
+							if (err.status) {
+								alert('수정/삭제는 본인만 가능합니다.');
+							} else {
+								alert(err.status + '알수 없는 오류가 밠생 했습니다.');
+							}
+						}
+					});
+				}
+			});
+		});
+	</script>
+	<script>
+		window.onload = function () {
+			var theForm = $('#form_posts')[0];
+			$('.btn-update').on('click', function () {
+				theForm.action = "userForm";
+				theForm.submit();
+			})
+		}
+	</script>
+	
+	<%- include ("../common/footer") %>

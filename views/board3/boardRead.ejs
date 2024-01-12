@@ -75,7 +75,7 @@
 				<a href="boardDelete?brdno=<%=row.brdno%>" class="btn btn-danger">삭제</a> 
 				<a href="boardForm?brdno=<%=row.brdno%>" class="btn btn-success">수정</a>
 			-->
-			<input type="hidden" name="brdno" value="<%=row.brdno%>">
+			<input type="hidden" name="brdno" id="brdno" value="<%=row.brdno%>">
 			<a href="#" onclick="window.location.replace('/board/boardList')" role="button"
 				class="btn btn-secondary">목록</a>
 			<input type="button" class="btn btn-success btn-delete" value="삭제"></button>
@@ -111,7 +111,7 @@
 					return false;
 				}
 				if (confirm("정말로 삭제 하시겠습니까?")) {
-					var brdno = document.querySelector("[name=brdno]");
+					var brdno = document.querySelector("#brdno");
 					$.ajax({
 						url: 'boardDelete',
 						type: 'POST',

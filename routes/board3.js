@@ -39,6 +39,11 @@ router.get('/loginForm', function (req, res, next) {
 
 router.get('/logout', function (req, res, next) {
     req.session.destroy();
+    res.locals.logined = null;//ejs에서 사용
+    res.locals.name = null;//ejs에서 사용
+    res.locals.email = null;//ejs에서 사용);
+    res.locals.admined = null;//ejs에서 사용
+    res.locals.userno = null;//ejs에서 사용
     //res.json({ message: 'ok' });
     res.redirect('/board/boardList');
 });
@@ -384,7 +389,7 @@ router.post('/boardDelete', function (req, res, next) {
                                 console.log('Error getting documents', err)
                             }
                         }));
-                });
+                    });
                 db.collection('board').doc(req.body.brdno).delete();//게시글 삭제
                 res.redirect('/board/boardList');
             }

@@ -1,0 +1,49 @@
+<%- include ("../common/header") %>
+	<form action="./boardList" method="GET">
+		<div class="btn-group" role="group" aria-label="Basic example">
+			<input name="keyword" type="text" placeholder="검색어를 입력해주세요">
+			<button class="btn btn-secondary">검색</button>
+		</div>
+	</form>
+	<!-- 목록 출력 영역 -->
+	<a href="userForm" class="btn btn-info" style="width: 100%;">회원등록</a>
+	<table class="table table-horizontal table-bordered">
+		<thead class="thead-string">
+			<tr>
+				<th>번호</th>
+				<th>이름</th>
+				<th>이메일</th>
+				<th>등록일</th>
+			</tr>
+		</thead>
+		<tbody id="tbody">
+			<% for(var i=0; i<rows.length; i++) { %>
+				<tr>
+					<td>
+						<a href='userRead?userno=<%=rows[i].userno%>'>
+							<%=rows.length-i%>
+						</a>
+					</td>
+					<td><a href='userRead?userno=<%=rows[i].userno%>'>
+							<%=rows[i].username%>
+						</a></td>
+					<td>
+						<%=rows[i].useremail%>
+					</td>
+					<td>
+						<%=rows[i].userdate_format%>
+					</td>
+				</tr>
+				<% } %>
+		</tbody>
+	</table>
+	<ul class="pagination justify-content-center">
+		<% if(pagingObj.prev) { %>
+			<li class="page-item"><a class="page-link" href="userList?prev=<%=pagingObj.prev.data().userdate%>">Prev</a>
+			</li>
+		<% } %>
+		<% if(pagingObj.next) { %>
+			<li class="page-item"><a class="page-link"	href="userList?next=<%=pagingObj.next.data().userdate%>">Next</a></li>
+		<% } %>
+	</ul>
+	<%- include ("../common/footer") %>
