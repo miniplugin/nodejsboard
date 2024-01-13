@@ -11,7 +11,39 @@ const crypto = require('crypto');//사용자 비번 암호화에 내장 모듈�
 /**
  * 파이어베이스 firebase-admin에 signInWithEmailAndPassword 함수가 없어서 DB로그인 추가
  */
-let cryptoPass = (userpwd, useremail) => {
+let pkpromise = (useremail) => { // DB 사용자 메일명 중복체크
+  return new Promise((resolve, reject) => {
+    const collectionRef = db.collection('users');
+    const q = collectionRef.where('useremail', '==', useremail);
+    q.count()
+      .get()
+      .then((sub_snapshot) => {
+        console.log(useremail, '중복email', sub_snapshot.data().count);
+        resolve(sub_snapshot.data().count);
+      })
+      .catch((err) => {
+        console.log('Error getting documents', err);
+        reject(null)
+      });
+  });
+}
+router.get('/emailchk', async function (req, res, next) { //중복 이메일 체크 API
+  let useremail = req.query.useremail;
+  console.log('여기-', useremail);
+  await pkpromise(useremail)
+    .then((result) => {
+      if (result > 0) {
+        res.json({ message: 'fail' });
+      } else {
+        res.json({ message: 'ok' });
+      }
+    })
+    .catch((err) => {
+      console.log(`Error getting documents ${err}`);
+      res.json({ message: 'fail' });
+    });
+});
+let cryptoPass = (userpwd, useremail) => { // 암호화 함수
   const salt = useremail;
   const hashPassword = crypto
     .createHash('sha512')
@@ -20,7 +52,7 @@ let cryptoPass = (userpwd, useremail) => {
   return hashPassword;
 }
 router.post('/login', function (req, res) {
-  if(req.body.useremail == '' || req.body.userpwd == '') {
+  if (req.body.useremail == '' || req.body.userpwd == '') {
     return res.status(400).json({
       message: 'fail',
     });
@@ -67,7 +99,7 @@ router.post('/login', function (req, res) {
             });
           }
         }));
-      }else{
+      } else {
         return res.status(400).json({
           message: 'fail',
         });
@@ -174,6 +206,10 @@ router.get('/userList', async function (req, res, next) {
 });
 
 router.get('/userRead', function (req, res, next) {
+  if (req.session.logined != true) {
+    res.send('<script>alert("사용자 내용은 로그인 후 보기 가능합니다.");window.location.replace("/");</script>');
+    return;
+  }
   db.collection('users').doc(req.query.userno).get()
     .then((doc) => {
       var childData = doc.data();
@@ -184,6 +220,10 @@ router.get('/userRead', function (req, res, next) {
 
 router.get('/userForm', function (req, res, next) {
   res.render('users/userForm', { row: "" });
+});
+
+router.get('/newForm', function (req, res, next) { // 관리자일 때 항상 신규 사용자 추가 시
+  res.render('users/newForm', { row: "" });
 });
 
 router.post('/userForm', function (req, res, next) {
@@ -209,6 +249,18 @@ router.post('/userForm', function (req, res, next) {
 
 router.post('/userSave', async function (req, res, next) {
   var postData = req.body;
+  var checkemail;
+  await pkpromise(postData.useremail)
+    .then((result) => {
+      checkemail = result;
+    })
+    .catch((err) => {
+      console.log(`Error getting documents ${err}`);
+    });
+  if (checkemail > 0 && !postData.userno) {
+    res.send('<script>alert("사용자 이메일이 중복 되었습니다. 다시 시도해 주세요.");window.history.back();</script>');
+    return;
+  }
   if (!postData.userno) {  // new
     postData.userdate = Date.now();
     var doc = db.collection("users").doc();
@@ -224,10 +276,12 @@ router.post('/userSave', async function (req, res, next) {
     console.log(postData.userpwd);
     if (postData.userpwd) {
       postData.userpwd = cryptoPass(postData.userpwd, postData.useremail);
-    }else{
+    } else {
       postData.userpwd = childData.userpwd;
     }
-    postData.useremail = req.session.email; //이메일은 한번 등록하면 변경하지 못하도록 강제로 등록
+    if (req.session.admined != true) {
+      postData.useremail = req.session.email; //관리자가 아닌 사용자 이메일은 한번 등록하면 변경하지 못하도록 강제로 등록
+    }
     doc.update(postData);
   }
   if (req.session.admined != true) {

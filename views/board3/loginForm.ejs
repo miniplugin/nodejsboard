@@ -1,4 +1,32 @@
 <%- include ("../common/header") %>
+<style>
+	.wrap-loading {
+		/*화면 전체를 어둡게 합니다.*/
+		position: fixed;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.2);
+		/*not in ie */
+		filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#20000000', endColorstr='#20000000');
+		/* ie */
+	}
+
+	.wrap-loading div {
+		/*로딩 이미지*/
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		margin-left: -21px;
+		margin-top: -21px;
+	}
+
+	.display-none {
+		/*감추기*/
+		display: none;
+	}
+</style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <!-- 기술 참조 https://blog.naver.com/dawnflo/222747749486 
 	https://developers.google.com/identity/gsi/web/guides/handle-credential-responses-js-functions?hl=ko
@@ -104,7 +132,11 @@
 		<a href="/users/userForm" role="button" class="btn btn-secondary">DB회원가입</a>
 	</form>
 </div>
+<div class="wrap-loading display-none">
+	<div>로그인중...</div>
+</div>
 <script>
+	var loadingLayer = document.querySelector(".wrap-loading");
 	var btnLogin = document.querySelector(".btnLogin");
 	btnLogin.addEventListener('click', function () {
 		var useremail = document.querySelector("#useremail");
@@ -122,9 +154,15 @@
 				userpwd: userpwd.value
 			}),
 			dataType: "json",
+			beforeSend: function () {
+				loadingLayer.classList.remove('display-none');
+			},
 			success: function (response) {
 				console.log('로그인 성공', response);
 				location.replace('/');
+			},
+			complete: function () {
+				loadingLayer.classList.add('display-none');
 			},
 			error: function (err) {
 				console.log(err.status);

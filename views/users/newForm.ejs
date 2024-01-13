@@ -1,0 +1,55 @@
+<%- include ("../common/header") %>
+<h2>사용자 등록</h2>
+<div class="col-md-12">
+	<form name="form_posts" id="form_posts" action="userSave" method="post">
+		<div class="form-group">
+			<label for="useremail">email <input type="button" class="btn btn-secondary btn-sm btnEmail" value="중복이메일체크"></label>
+			<input value="" type="text" class="form-control" name="useremail" placeholder="email을 입력하세요" required>
+		</div>
+		<div class="form-group">
+			<label for="username">name</label>
+			<input value="" type="text" class="form-control" name="username" placeholder="name을 입력하세요" required>
+		</div>
+		<div class="form-group">
+			<label for="userpwd">password</label>
+			<input value="" type="password" class="form-control" name="userpwd" placeholder="password을 입력하세요">
+		</div>
+		<input type="hidden" name="userno" value="">
+		<a href="#" onclick="history.back(-1)" role="button" class="btn btn-secondary">취소</a>
+		<% if(admined==true) { %>
+		<a href="#" onclick="window.location.replace('/users/userList')" role="button" class="btn btn-secondary">목록</a>
+		<% } %>
+		<input type="submit" class="btn btn-success btn-save" value="등록">
+	</form>
+	<script>
+	var btnEmail = document.querySelector(".btnEmail");
+	btnEmail.addEventListener('click', function () {
+		var useremail = document.querySelector("input[name='useremail']");
+		if(useremail.value == '') {
+			alert('이메일 값은 필수 입니다.');
+			return false;
+		}
+		//alert(useremail.value);
+		$.ajax({
+			url: '/users/emailchk',
+			type: 'GET',
+			data: {
+				useremail: useremail.value
+			},
+			dataType: "json",
+			success: function (response) {
+				console.log('로그인 성공', response);
+				if(response.message == 'ok') {
+					alert("중복된 이메일이 없습니다. 사용 가능합니다.");
+				}else{
+					alert("중복된 이메일 입니다. 다시 입력해 주세요.");
+				}
+			},
+			error: function (err) {
+				console.log(err.status);
+				alert('전송 실패 입니다. 정보를 다시 확인해 주세요.');
+			}
+		});
+	});
+	</script>
+<%- include ("../common/footer") %>
